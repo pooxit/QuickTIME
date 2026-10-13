@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer & Alarm Animasi Premium</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            color: #e2e8f0;
+            /* Latar belakang dasar */
+            background-color: #020617; 
+        }
+
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* --- ANIMASI WARNA LATAR BELAKANG --- */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            /* Gradasi warna-warni yang elegan (Biru gelap, Ungu tua, Zamrud gelap) */
+            background: linear-gradient(45deg, #0f172a, #1e1b4b, #064e3b, #312e81);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- EFEK GLOW PADA KARTU UTAMA --- */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            /* Animasi shadow (glow) yang berdenyut pelan */
+            animation: panelGlow 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes panelGlow {
+            0% { box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.2), 0 0 0 1px rgba(255,255,255,0.05); }
+            50% { box-shadow: 0 20px 50px -15px rgba(236, 72, 153, 0.3), 0 0 0 1px rgba(255,255,255,0.1); }
+            100% { box-shadow: 0 10px 30px -10px rgba(45, 212, 191, 0.2), 0 0 0 1px rgba(255,255,255,0.05); }
+        }
+
+        /* Premium Input Styling */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.6) 100%);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        input[type="number"]:focus {
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.8) 100%);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5), 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Teks Animasi Gradasi Emas */
+        .gradient-gold-text {
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #bf953f);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShine 4s linear infinite;
+        }
+
+        @keyframes textShine {
+            to { background-position: 200% center; }
+        }
+
+        /* Animasi Latar Belakang Overlay Alarm (Merah Darah Berdenyut) */
+        @keyframes alarmGlow {
+            0% { background-color: rgba(153, 27, 27, 0.8); }
+            50% { background-color: rgba(220, 38, 38, 0.95); }
+            100% { background-color: rgba(153, 27, 27, 0.8); }
+        }
+        .bg-alarm-active {
+            animation: alarmGlow 1.5s ease-in-out infinite;
+        }
+        
+        /* Animasi Tombol Mulai (Warna Bergerak) */
+        .btn-gradient-animated {
+            background: linear-gradient(90deg, #b45309, #d97706, #b45309);
+            background-size: 200% auto;
+            transition: 0.5s;
+        }
+        .btn-gradient-animated:hover:not(:disabled) {
+            background-position: right center;
+            box-shadow: 0 0 20px rgba(217, 119, 6, 0.6);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col items-center justify-center selection:bg-yellow-600 selection:text-white">
+
+    <!-- Latar Belakang Animasi -->
+    <div class="animated-bg"></div>
+
+    <!-- Header Waktu Saat Ini -->
+    <div class="absolute top-8 w-full text-center z-10 flex flex-col items-center">
+        <p class="text-slate-400/80 text-xs font-semibold tracking-[0.2em] uppercase mb-2 drop-shadow-md">Waktu Lokal</p>
+        <div class="bg-black/30 backdrop-blur-md px-6 py-2 rounded-full inline-block border border-white/10 shadow-lg">
+            <h2 id="liveClock" class="text-2xl font-light tracking-widest text-slate-100">00:00:00</h2>
+        </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="glass-panel p-10 rounded-[2.5rem] flex flex-col items-center w-[92%] max-w-lg relative z-10 transition-all duration-500">
+        
+        <!-- View 1: Setup Timer -->
+        <div id="setupView" class="w-full flex flex-col items-center">
+            <h1 class="text-3xl md:text-4xl font-serif gradient-gold-text mb-3 text-center">Set Timer</h1>
+            <p class="text-sm text-slate-300 mb-10 text-center font-light drop-shadow-sm">Tentukan durasi untuk memulai sesi Anda.</p>
+            
+            <div class="flex items-center justify-center gap-6 mb-8">
+                <!-- Input Jam -->
+                <div class="flex flex-col items-center group">
+                    <div class="relative">
+                        <input type="number" id="hourInp" min="0" max="99" placeholder="00" 
+                            class="w-28 h-32 text-6xl text-center text-white rounded-3xl border border-slate-600/50 outline-none font-light shadow-xl">
+                    </div>
+                    <span class="text-xs font-medium text-slate-400 mt-4 tracking-widest uppercase">Jam</span>
+                </div>
+                
+                <div class="flex flex-col justify-center h-32">
+                    <span class="text-4xl text-slate-400 font-light mb-8 animate-pulse shadow-black">:</span>
+                </div>
+                
+                <!-- Input Menit -->
+                <div class="flex flex-col items-center group">
+                    <div class="relative">
+                        <input type="number" id="minInp" min="0" max="59" placeholder="00" 
+                            class="w-28 h-32 text-6xl text-center text-white rounded-3xl border border-slate-600/50 outline-none font-light shadow-xl">
+                    </div>
+                    <span class="text-xs font-medium text-slate-400 mt-4 tracking-widest uppercase">Menit</span>
+                </div>
+            </div>
+
+            <!-- Kalkulasi ETA -->
+            <div class="w-full mb-10 h-6 flex items-center justify-center">
+                <p id="etaText" class="text-slate-400 text-sm font-light text-center transition-all opacity-80">
+                    Masukkan durasi alarm
+                </p>
+            </div>
+
+            <!-- Tombol Mulai -->
+            <button id="startBtn" disabled class="w-full btn-gradient-animated disabled:bg-none disabled:bg-slate-800/80 disabled:text-slate-500 disabled:border-slate-700/50 disabled:cursor-not-allowed border border-yellow-500/30 text-white font-semibold py-4 px-8 rounded-2xl transform active:scale-[0.98] disabled:shadow-none text-lg tracking-wide shadow-lg">
+                Mulai Sesi
+            </button>
+        </div>
+
+        <!-- View 2: Countdown Aktif (Tersembunyi) -->
+        <div id="countdownView" class="w-full hidden flex-col items-center py-6">
+            <div class="flex items-center gap-3 mb-8 bg-black/20 px-4 py-2 rounded-full border border-white/5">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <h2 class="text-xs font-semibold text-emerald-400 uppercase tracking-[0.2em]">Alarm Berjalan</h2>
+            </div>
+            
+            <div id="countdownDisplay" class="text-7xl md:text-8xl font-light tracking-tight text-white mb-6 text-center tabular-nums font-serif drop-shadow-2xl">
+                00:00:00
+            </div>
+            
+            <div class="bg-black/40 border border-white/10 px-6 py-3 rounded-full mb-12 shadow-inner">
+                <p id="targetTimeDisplay" class="text-slate-300 text-sm font-light flex items-center gap-2">
+                    <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Selesai pada --:--
+                </p>
+            </div>
+
+            <button id="cancelBtn" class="w-full bg-transparent hover:bg-white/10 border border-slate-500/50 hover:border-slate-300 text-slate-200 font-medium py-4 px-8 rounded-2xl transition-all duration-300 shadow-sm">
+                Batalkan
+            </button>
+        </div>
+    </div>
+
+    <!-- Overlay Saat Berdering -->
+    <div id="alarmOverlay" class="fixed inset-0 z-50 hidden flex-col items-center justify-center bg-alarm-active backdrop-blur-xl transition-opacity duration-500 opacity-0">
+        
+        <div class="bg-white/10 p-8 rounded-full mb-8 backdrop-blur-md border border-white/20 animate-bounce shadow-[0_0_50px_rgba(255,255,255,0.3)]">
+            <svg class="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+            </svg>
+        </div>
+        
+        <h2 class="text-5xl md:text-7xl font-serif text-white mb-4 tracking-wider text-center drop-shadow-2xl font-bold">
+            Waktu Habis
+        </h2>
+        <p class="text-white/90 text-lg md:text-xl mb-16 font-light drop-shadow-md">Sesi Anda telah selesai.</p>
+        
+        <button id="stopBtn" class="bg-white text-red-700 hover:bg-slate-100 font-bold text-lg md:text-xl py-4 px-12 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all hover:shadow-[0_0_40px_rgba(255,255,255,0.8)] hover:scale-105 active:scale-95 tracking-wide">
+            Hentikan Alarm
+        </button>
+    </div>
+
+    <script>
+        // --- State Variables ---[cite: 3]
+        let audioCtx = null;
+        let beepInterval = null;
+        let countdownInterval = null;
+        let targetTimestamp = null;
+
+        // --- DOM Elements ---[cite: 3]
+        const liveClockEl = document.getElementById('liveClock');
+        const hourInp = document.getElementById('hourInp');
+        const minInp = document.getElementById('minInp');
+        const etaText = document.getElementById('etaText');
+        const startBtn = document.getElementById('startBtn');
+        
+        const setupView = document.getElementById('setupView');
+        const countdownView = document.getElementById('countdownView');
+        const countdownDisplay = document.getElementById('countdownDisplay');
+        const targetTimeDisplay = document.getElementById('targetTimeDisplay');
+        const cancelBtn = document.getElementById('cancelBtn');
+        
+        const overlay = document.getElementById('alarmOverlay');
+        const stopBtn = document.getElementById('stopBtn');
+
+        const padZero = (num) => String(num).padStart(2, '0'); //[cite: 3]
+
+        // --- Update Jam Real-time ---[cite: 3]
+        function updateLiveClock() {
+            const now = new Date();
+            liveClockEl.textContent = `${padZero(now.getHours())}:${padZero(now.getMinutes())}:${padZero(now.getSeconds())}`;
+        }
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock();
+
+        // --- Kalkulasi Waktu Selesai (ETA) ---[cite: 3]
+        function calculateETA() {
+            let h = parseInt(hourInp.value) || 0;
+            let m = parseInt(minInp.value) || 0;
+
+            if (h === 0 && m === 0) {
+                etaText.innerHTML = "Masukkan durasi alarm";
+                etaText.className = "text-slate-400 text-sm font-light text-center transition-all opacity-80";
+                startBtn.disabled = true;
+                return;
+            }
+
+            let now = new Date();
+            now.setHours(now.getHours() + h);
+            now.setMinutes(now.getMinutes() + m);
+
+            let targetH = padZero(now.getHours());
+            let targetM = padZero(now.getMinutes());
+
+            etaText.innerHTML = `Selesai pada <span class="font-medium text-yellow-400 ml-1 drop-shadow-md">${targetH}:${targetM}</span>`;
+            etaText.className = "text-slate-200 text-sm md:text-base font-light text-center transition-all";
+            startBtn.disabled = false;
+        }
+
+        // --- Validasi Input ---[cite: 3]
+        [hourInp, minInp].forEach(input => {
+            input.addEventListener('input', function() {
+                if(this.value.length > 2) this.value = this.value.slice(0, 2);
+                let val = parseInt(this.value);
+                let max = parseInt(this.getAttribute('max'));
+                if(val > max) this.value = max;
+                if(val < 0) this.value = 0;
+                
+                calculateETA();
+            });
+            
+            // Format 0 di depan saat blur
+            input.addEventListener('blur', function() {
+                if(this.value !== "" && parseInt(this.value) < 10) {
+                    this.value = padZero(parseInt(this.value));
+                }
+            });
+        });
+
+        // --- Mulai Timer ---[cite: 3]
+        startBtn.addEventListener('click', () => {
+            let h = parseInt(hourInp.value) || 0;
+            let m = parseInt(minInp.value) || 0;
+
+            targetTimestamp = Date.now() + (h * 3600000) + (m * 60000);
+            
+            let targetDate = new Date(targetTimestamp);
+            targetTimeDisplay.innerHTML = `<svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Selesai pada ${padZero(targetDate.getHours())}:${padZero(targetDate.getMinutes())}`;
+
+            // Ganti UI
+            setupView.classList.add('hidden');
+            countdownView.classList.remove('hidden');
+            countdownView.classList.add('flex');
+
+            // Inisialisasi Audio
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            updateCountdown(); 
+            countdownInterval = setInterval(updateCountdown, 100); 
+        });
+
+        // --- Update Hitung Mundur ---[cite: 3]
+        function updateCountdown() {
+            let remainingMs = targetTimestamp - Date.now();
+
+            if (remainingMs <= 0) {
+                clearInterval(countdownInterval);
+                countdownDisplay.textContent = "00:00:00";
+                triggerAlarm();
+                return;
+            }
+
+            let totalSeconds = Math.floor(remainingMs / 1000);
+            let hours = Math.floor(totalSeconds / 3600);
+            let minutes = Math.floor((totalSeconds % 3600) / 60);
+            let seconds = totalSeconds % 60;
+
+            countdownDisplay.textContent = `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+        }
+
+        // --- Batalkan Timer ---[cite: 3]
+        cancelBtn.addEventListener('click', resetApp);
+
+        function resetApp() {
+            clearInterval(countdownInterval);
+            clearInterval(beepInterval);
+            
+            countdownView.classList.add('hidden');
+            countdownView.classList.remove('flex');
+            setupView.classList.remove('hidden');
+            
+            hourInp.value = '';
+            minInp.value = '';
+            calculateETA(); 
+        }
+
+        // --- Alarm Berdering ---[cite: 3]
+        function triggerAlarm() {
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            setTimeout(() => overlay.classList.remove('opacity-0'), 50);
+
+            playBeep();
+            beepInterval = setInterval(() => {
+                playBeep();
+                setTimeout(playBeep, 200); 
+            }, 1000);
+        }
+
+        // --- Suara Bip ---[cite: 3]
+        function playBeep() {
+            if(!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'sine'; // Suara 'sine' agar elegan[cite: 3]
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); 
+            
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // --- Hentikan Alarm ---[cite: 3]
+        stopBtn.addEventListener('click', () => {
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+                resetApp(); 
+            }, 500);
+        });
+    </script>
+</body>
+</html>
